@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Tetris</title>
+
+	<link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+	<div class="modal" id="modal">
+		<form id="form">
+			<!-------- Player Name  ------->
+			<div class="input-wrapper">
+				<legend for="playerName" class="input-legend">Player ID: Type Number ID given in Survey</legend>
+				<input type="text" name="playerName" id="playerName" class="input-field" pattern=".{3,}" required
+					title="3 characters minimum" required />
+			</div>
+			<!-------- Game Id -------->
+			<!-- <div class="input-wrapper">
+				<legend for="gameId" class="input-legend">Game Id</legend>
+				<input type="text" name="gameId" id="gameId" class="input-field" pattern=".{3,}" required
+					title="3 characters minimum" />
+			</div> -->
+			<!---- Submit Button --------->
+			<div class="input-wrapper">
+				<input type="submit" class="submit-button" id="submit" onclick="handleSubmit(event)" />
+			</div>
+		</form>
+		<span class="notification fadeEffect" id="message"> Pairing ... </span>
+	</div>
+	<!---- Notification Button --------->
+	<span class="notification fadeEffect" id="notification">
+		Players Turn
+	</span>
+
+	<div id="tetris">
+		<canvas id="scene"></canvas>
+		<div id="gameOver">
+			<h1>Game Over!</h1>
+			<h3>Score: <span id="finalScore">0</span></h3>
+			<h3 id="redirect">Type the number below in the first tab to continue. </h3>
+			<h4>Validation Number: 29678</span></h4>
+		
+			<!---<h2><a href="#" id="redirect-url">Cllick Here</a> 
+				<h2>-->
+		</div>
+		<div id="side">
+			<div id="info">
+				<!---- <h1 id="levelInfo">Level: <br><span id="level">1</span></h1> -->
+				<h1 id="levelInfo">Player:<br><span id="player"></span></h1>
+				<h1 id="levelInfo">Turn:<br><span id="turn"></span></h1>
+				<h1 id="levelInfo">Play Count:<br><span id="play-count"></span></h1>
+				<h1 id="levelInfo">Turn Count:<br><span id="turn-count"></span></h1>
+				<h2 id="scoreInfo">Score: <br><span id="score">0</span></h2>
+				<div id="rewardInfo" class="invisible">+<span id="reward">0</span></div>
+				<canvas id="preview"></canvas>
+
+			</div>
+		</div>
+	</div>
+
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+<script src="dist/index.js"></script>
+<script>
+	var currentUrl = window.location.href;
+	var redirectURL = window.location.search;
+	if (redirectURL) {
+		redirectURL = redirectURL.substr(redirectURL.indexOf("=") + 1);
+		document.getElementById("redirect-url").href = redirectURL;
+	}
+
+	var socket = io.connect(currentUrl);
+	var playerName;
+	var gameId;
+	var tetris;
+	function random(){
+		document.getElementById("num-gen").innerHTML = Math.floor(Math.random() * 10);
+	}
+
+	function handleSubmit(e) {
+		e.preventDefault();
+		//gameId = document.getElementById("gameId").value;
+		playerName = document.getElementById("playerName").value;
+		tetris = new Tetris('tetris', socket, { gameId: gameId, playerName: playerName });
+		document.getElementById("form").style.display = "none";
+		tetris.pause();
+	}
+
+
+	// socket.on("backend", (data) => {
+	// 	alert(data);
+	// });
+
+</script>
+
+</html>
