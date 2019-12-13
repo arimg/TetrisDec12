@@ -6,7 +6,7 @@ var COLUMN_COUNT = consts.COLUMN_COUNT;
 	Defined all shapes used in Tetris game. 
 	You can add more shapes if you wish.
 */
-function ShapeL(color) {
+function ShapeL() {
 	var state1 = [[1, 0],
 	[1, 0],
 	[1, 1]];
@@ -26,10 +26,9 @@ function ShapeL(color) {
 	this.x = 4;
 	this.y = -3;
 	this.flag = 'L';
-	this.color = COLORS[color];
 }
 
-function ShapeLR(color) {
+function ShapeLR() {
 	var state1 = [[0, 1],
 	[0, 1],
 	[1, 1]];
@@ -49,10 +48,9 @@ function ShapeLR(color) {
 	this.x = 4;
 	this.y = -3;
 	this.flag = 'LR';
-	this.color = COLORS[color];
 }
 
-function ShapeO(color) {
+function ShapeO() {
 
 	var state1 = [[1, 1],
 	[1, 1]];
@@ -62,10 +60,9 @@ function ShapeO(color) {
 	this.x = 4;
 	this.y = -2;
 	this.flag = 'O';
-	this.color = COLORS[color];
 }
 
-function ShapeI(color) {
+function ShapeI() {
 	var state1 = [[1],
 	[1],
 	[1],
@@ -78,10 +75,9 @@ function ShapeI(color) {
 	this.x = 4;
 	this.y = -4;
 	this.flag = 'I';
-	this.color = COLORS[color];
 }
 
-function ShapeT(color) {
+function ShapeT() {
 	var state1 = [[1, 1, 1],
 	[0, 1, 0]];
 
@@ -100,10 +96,9 @@ function ShapeT(color) {
 	this.x = 3;
 	this.y = -2;
 	this.flag = 'T';
-	this.color = COLORS[color];
 }
 
-function ShapeZ(color) {
+function ShapeZ() {
 	var state1 = [[1, 1, 0],
 	[0, 1, 1]];
 
@@ -115,10 +110,9 @@ function ShapeZ(color) {
 	this.x = 3;
 	this.y = -2;
 	this.flag = 'Z';
-	this.color = COLORS[color];
 }
 
-function ShapeZR(color) {
+function ShapeZR() {
 	var state1 = [[0, 1, 1],
 	[1, 1, 0]];
 
@@ -130,7 +124,6 @@ function ShapeZR(color) {
 	this.x = 3;
 	this.y = -2;
 	this.flag = 'ZR';
-	this.color = COLORS[color];
 }
 // Default shape object to copy the shape from backend; 
 function ShapeDefault(payload) {
@@ -192,18 +185,19 @@ ShapeL.prototype =
 	ShapeDefault.prototype = {
 
 		init: function () {
+			this.color = COLORS[Math.floor(Math.random() * 7)];
 			this.state = 0;
 			this.allBoxes = {};
 			this.y = 0;
 		},
 		//set the instance variable of the function
-		updateShape: function (payload, color) {
+		updateShape: function (payload) {
 			this.states = payload.states;
 			this.state = payload.state;
 			this.flag = payload.flag;
 			this.x = payload.x;
 			this.y = payload.y;
-			this.color = COLORS[color];
+			this.color = payload.color;
 		},
 
 		// Get boxes matrix which composite the shape
@@ -318,20 +312,20 @@ ShapeL.prototype =
 /**
 	Create  a random shape for game
 */
-function generateShape(payload, color) {
+function generateShape(payload) {
 	if (payload) {
 		shape = new ShapeDefault(payload);
-		shape.updateShape(payload, color)
+		shape.updateShape(payload)
 	} else {
 		var result = Math.floor(Math.random() * 7);
 		switch (result) {
-			case 0: shape = new ShapeL(color); break;
-			case 1: shape = new ShapeO(color); break;
-			case 2: shape = new ShapeZ(color); break;
-			case 3: shape = new ShapeT(color); break;
-			case 4: shape = new ShapeLR(color); break;
-			case 5: shape = new ShapeZR(color); break;
-			case 6: shape = new ShapeI(color); break;
+			case 0: shape = new ShapeL(); break;
+			case 1: shape = new ShapeO(); break;
+			case 2: shape = new ShapeZ(); break;
+			case 3: shape = new ShapeT(); break;
+			case 4: shape = new ShapeLR(); break;
+			case 5: shape = new ShapeZR(); break;
+			case 6: shape = new ShapeI(); break;
 		}
 		shape.init();
 	}

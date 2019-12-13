@@ -20,7 +20,6 @@ const newConnection = function (socket, io, options) {
 //JOIN ROOM
 function joinRoom(socket, io, data, options) {
     let { players, games, MAX_GAME_PLAYERS } = options;
-    console.log("Players Length :: " + players.length);
 
     var player = {
         playerName: data.playerName,
@@ -30,7 +29,6 @@ function joinRoom(socket, io, data, options) {
     //Add to waiting players list
     players.push(player);
 
-    //console.log(players);
 
     if (players.length == MAX_GAME_PLAYERS) {
         let uniqueGameId = uuidv1();
@@ -60,7 +58,9 @@ function joinRoom(socket, io, data, options) {
         // Creating game instance for DB
         let gameObj = new Game({
             gameId: uniqueGameId,
-            players: gamePlayers
+            players: gamePlayers,
+            startTime: new Date(),
+            endTime: null,
         })
 
         gameObj.save(); // saving data to db.
@@ -71,16 +71,16 @@ function joinRoom(socket, io, data, options) {
         // Reset Options
         options.players = [];
 
-        //console.log(gamePlayers);
         var currentTurn = gamePlayers[0].playerName;
         var currentPlayerSocketId = gamePlayers[0].socketId;
         //Updating current player turn count to one.
         playersTally[currentPlayerSocketId].totalTurns += 1;
-        //console.log(currentTurn);
+       
         io.in(uniqueGameId).emit("join_room_ack", {
             joinedGame: true,
             gameId: data.gameId,
             status: "paired",
+            startTime: gameObj.startTime,
             turnCount: 0,
             currentTurn: currentTurn,
             playersTally: playersTally,
@@ -94,32 +94,46 @@ function joinRoom(socket, io, data, options) {
 
 //BROADCAST GAME STATE
 function braodcastState(socket, io, data) {
-    //console.log("DATA FROM :: " + data.playerName + ", currentTurn :: " + data.currentTurn);
     socket.broadcast.to(data.gameId).emit("state", data);
 }
 
 //DISCONNECT
-function disconnect(socket, io, data, options) {
+async function disconnect(socket, io, data, options) {
     let { players, games } = options;
     let socketId = socket.id;
     for (var i = 0; i < players.length; i++) {
         if (players[i].socket.id == socket.id) {
+            console.log(players[i]);
             players.splice(i, 1);
         }
     }
+
+    let currentGameId;
+    let currentPlayer;
     let disconnectGameId;
     for (var gameId in games) {
         let players = games[gameId]
         players.forEach((player) => {
             if (player.socketId == socketId) {
                 //deleting game from games
+                currentGameId = gameId;
+                currentPlayer = player.playerName;
                 delete games[gameId];
                 disconnectGameId = gameId;
                 //Removing All Players from room
-                //console.log(games);
             }
         });
     }
+
+    let currentGame = await Game.findOne( {"gameId": currentGameId} );
+
+    //Updating End time and Player which left
+    if(currentGame){
+        currentGame.endTime = new Date();
+        currentGame.playerLeft = currentPlayer;
+        currentGame.save();
+    }
+
     socket.leave();
     io.in(disconnectGameId).emit("disconnect_ack", {
         disconnect: true
@@ -133,7 +147,6 @@ function blockLandedHandler(socket, io, data, options) {
     var { NUM_PLAYS, games, players, MAX_GAME_PLAYERS, MAX_SCORE } = options;
 
     var gamePlayers = games[data.gameId];
-    //console.log(gamePlayers);
 
     if (!(data.playCount % NUM_PLAYS)) {
         console.log("TURN_COUNT :: " + data.turnCount + "RESET_COUNT :: " + data.resetCount);
@@ -147,10 +160,16 @@ function blockLandedHandler(socket, io, data, options) {
             playerScore: [],
             playerTurns: [],
             turnCount: data.turnCount,
-            resetCount: data.resetCount
+            resetCount: data.resetCount,
+            spaceCount: data.spaceCount,
+			rotateCount: data.rotateCount,
+			downCount: data.downCount,
         }
+        console.log("space :"+data.spaceCount+" rotate: "+data.rotateCount+" downCount: "+data.downCount);
+
         gamePlayers.forEach((player) => {
             let { socketId } = player;
+            console.log(data.playersTally[socketId]);
             turnDataObj.playerTurns.push(data.playersTally[socketId].totalTurns);
             turnDataObj.playerScore.push(data.playersTally[socketId].totalScore);
         });

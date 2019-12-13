@@ -16,6 +16,7 @@ var score = $('score');
 var rewardInfo = $('rewardInfo');
 var reward = $('reward');
 var gameOver = $('gameOver');
+var redirect = $('redirect');
 //var btnRestart = $('restart');
 var finalScore = $('finalScore');
 var notification = $('notification');
@@ -119,6 +120,9 @@ var tetrisView = {
 	// Set game over view
 	setGameOver: function (isGameOver) {
 		gameOver.style.display = isGameOver ? 'block' : 'none';
+	},
+	setRedirectMessage: function(msg) {
+		redirect.innerText = msg;
 	},
 	setPlayer: function (playerName) {
 		player.innerHTML = playerName;

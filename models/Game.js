@@ -8,6 +8,18 @@ const GameSchema = new mongoose.Schema({
   players: {
     type: Array,
     required: true,
+  },
+  startTime: {
+    type: Date,
+    required: true,
+  },
+  endTime: {
+    type: Date,
+    required: false,
+  },
+  playerLeft: {
+    type: String,
+    required: false,
   }
 });
 

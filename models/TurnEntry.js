@@ -20,7 +20,21 @@ const TurnEntrySchema = new mongoose.Schema({
   resetCount: {
     type: Number,
     required: true
-  }
+  },
+
+  spaceCount: {
+    type: Number,
+    required: false
+  },
+  rotateCount: {
+    type: Number,
+    required: false
+  },
+  downCount: {
+    type: Number,
+    required: false
+  },
+  
 
 });
 

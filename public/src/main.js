@@ -150,7 +150,7 @@ function Tetris(id, socket, options) {
 	this.playCount = 0;
 	this.turnCount = 0;
 	this.resetCount = 0;
-	this.MAX_TURNS = 30;
+	this.MAX_TURNS = 300000;
 	console.log(this.socket);
 	this.init();
 }
@@ -169,13 +169,14 @@ Tetris.prototype = {
 			console.log("join_room_ack :: " + data.joinedGame + " :: gameId ::" + data.gameId);
 			this.gameId = data.gameId;
 			this.playersTally = data.playersTally;
-			this.playersList = data.players;	//changed
 
 			if (!data.joinedGame) {
 				views.setPairingMessage(true);
 			} else {
 				views.setPairingMessage(false);
 				views.hideModal();
+				this.startTime = data.startTime;
+				console.log("StartTime "+ this.startTime);
 			}
 
 			if (data.currentTurn && data.joinedGame) {
@@ -242,7 +243,10 @@ Tetris.prototype = {
 		this.socket.on("disconnect_ack", (data) => {
 			console.log(data)
 			if (data.disconnect) {
-				views.setNotification("Other player left please start a new game");
+				// views.setNotification("Other player left please start a new game");
+				this.isGameOver = true;
+				views.setGameOver(this.isGameOver);
+				views.setRedirectMessage("Other player left please start a new game");
 				this.pause();
 			}
 		});
@@ -269,6 +273,10 @@ Tetris.prototype = {
 		this.score = 0;
 		this.startTime = new Date().getTime();
 		this.currentTime = this.startTime;
+		this.rotationCount = 0;
+		this.spaceCount = 0;
+		this.downCount = 0;
+		this.rotateCount = 0;
 		//this.prevTime = this.startTime;
 		//this.levelTime = this.startTime;
 		clearMatrix(this.matrix);
@@ -319,13 +327,15 @@ Tetris.prototype = {
 			startTime: this.startTime,
 			currentTime: this.currentTime,
 			prevTime: this.prevTime,
-			resetCount: this.resetCount
+			resetCount: this.resetCount,
+			spaceCount: this.spaceCount,
+			rotateCount: this.rotateCount,
+			downCount: this.downCount,
 			//levelTime: this.levelTime
 		}
 	},
 	// set state payload
 	_setStatePayload: function (data) {
-		console.log("In side Set State");
 
 		this.matrix = data.matrix || this.matrix;
 		if (this.running != data.running) {
@@ -338,16 +348,16 @@ Tetris.prototype = {
 		this.isGameOver = data.isGameOver || this.isGameOver;
 		//Shape
 		if (this.shape) {
-			this.shape.updateShape(data.shape, playersList.indexOf(this.currentTurn));
+			this.shape.updateShape(data.shape);
 		} else {
-			this.shape = shapes.generateShape(data.shape, playersList.indexOf(this.currentTurn));	//changed
+			this.shape = shapes.generateShape(data.shape);
 		}
 
 		//preparedShapes
 		if (this.preparedShape) {
-			this.preparedShape.updateShape(data.preparedShape, consts.DEFAULT_COLOR);
+			this.preparedShape.updateShape(data.preparedShape);
 		} else {
-			this.preparedShape = shapes.generateShape(data.preparedShape, consts.DEFAULT_COLOR);
+			this.preparedShape = shapes.generateShape(data.preparedShape);
 		}
 		canvas.drawPreviewShape(this.preparedShape);
 
@@ -404,6 +414,7 @@ Tetris.prototype = {
 
 			case 38: {
 				if (!this.running) return;
+				this.rotateCount++;
 				this.shape.rotate(matrix);
 				this._draw();
 			}
@@ -411,6 +422,7 @@ Tetris.prototype = {
 
 			case 40: {
 				if (!this.running) return;
+				this.downCount++;
 				this.shape.goDown(matrix);
 				this._draw();
 			}
@@ -429,6 +441,7 @@ Tetris.prototype = {
 
 			case 32: {
 				if (!this.running) return;
+				this.spaceCount++;
 				this.shape.goBottom(matrix);
 				this._update();
 			}
@@ -475,11 +488,9 @@ Tetris.prototype = {
 		}
 
 		this.currentTime = new Date().getTime();
-		//	console.log("refresh :: " + (this.currentTime - this.prevTime > this.interval));
 		if (this.currentTime - this.prevTime > this.interval) {
 			this._update();
 			this.prevTime = this.currentTime;
-			//this._checkLevel();
 		}
 		if (!this.isGameOver) {
 			window.requestAnimationFrame(utils.proxy(this._refresh, this));
@@ -502,7 +513,10 @@ Tetris.prototype = {
 					turnCount: this.turnCount,
 					score: this.score,
 					resetCount: this.resetCount,
-					playersTally: this.playersTally
+					playersTally: this.playersTally,
+					spaceCount: this.spaceCount,
+					rotateCount: this.rotateCount,
+					downCount: this.downCount,
 				})
 				views.setPlayCount(this.playCount);
 				views.setTurnCount(this.turnCount);

@@ -1,6 +1,6 @@
 
 //colors for shapes
-var colors = ['#00af9d', '#ffb652', '#cd66cc', '#66bc29', '#0096db', '#3a7dda', '#ffe100', '#46ffff','#ff8200',];
+var colors = ['#00af9d', '#ffb652', '#cd66cc', '#66bc29', '#0096db', '#3a7dda', '#ffe100'];
 
 //sidebar width
 var sideWidth = 200;
@@ -35,15 +35,11 @@ var waitTime = 3;
 // Game speed
 var defaultInterval = 600;
 
-// Default Shape color
-var DEFAULT_COLOR = 8;
 
 // Level update interval 
 var levelInterval = 120 * 1000;
 
 var exports = module.exports = {};
-
-exports.DEFAULT_COLOR = DEFAULT_COLOR;
 
 exports.COLORS = colors;
 
